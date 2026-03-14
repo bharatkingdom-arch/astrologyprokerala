@@ -14,7 +14,7 @@
             <!-- Logo -->
 
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img alt="Image placeholder" src="<?= DEMO_BASE_URL?>/assets/img/logo-large.png" id="navbar-logo" >
+                <img alt="Image placeholder" src="<?= DEMO_BASE_URL?>/assets/img/astroloak.png" id="navbar-logo" >
             </a>
 
 
