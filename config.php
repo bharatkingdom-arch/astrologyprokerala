@@ -1,7 +1,7 @@
 <?php
 
 const DEMO_BASE_DIR = __DIR__;
-const DEMO_BASE_URL = '/demo';
+const DEMO_BASE_URL = '';
 
 const CLIENT_ID = '1b88a6d8-e904-4046-97f1-5537cfe9c827';
 const CLIENT_SECRET = 't4ADts9eegyqYtSr29WzITkyViwKqq02TN9FUMoT';
