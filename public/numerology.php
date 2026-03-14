@@ -8,9 +8,6 @@ require __DIR__ . '/datelimiter.php';
 $submit = $_POST['submit'] ?? 0;
 $sample_name = 'numerology';
 
-$timezone = 'Asia/Kolkata';
-$tz = new DateTimeZone($timezone);
-
 $result = [];
 $errors = [];
 
@@ -19,16 +16,17 @@ $middleName = $_POST['middleName'] ?? '';
 $lastName = $_POST['lastName'] ?? '';
 $date = $_POST['date'] ?? '';
 
-$selectedCalculator = $_POST['calculatorName'] ?? 'life-path-number';
+$timezone = 'Asia/Kolkata';
+$tz = new DateTimeZone($timezone);
 
 
 /* -------------------------
-   NUMEROLOGY FUNCTIONS
+UTILITY FUNCTIONS
 --------------------------*/
 
 function reduceNumber($num)
 {
-    while ($num > 9) {
+    while ($num > 9 && $num != 11 && $num != 22 && $num != 33) {
         $num = array_sum(str_split((string)$num));
     }
     return $num;
@@ -67,9 +65,83 @@ function nameNumber($name)
     return reduceNumber($sum);
 }
 
+function soulUrgeNumber($name)
+{
+    $name = strtoupper($name);
+    $vowels = ['A','E','I','O','U'];
+
+    $values = [
+        'A'=>1,'E'=>5,'I'=>9,'O'=>6,'U'=>3
+    ];
+
+    $sum = 0;
+
+    foreach(str_split($name) as $char){
+        if(in_array($char,$vowels)){
+            $sum += $values[$char];
+        }
+    }
+
+    return reduceNumber($sum);
+}
+
+function personalityNumber($name)
+{
+    $name = strtoupper($name);
+    $vowels = ['A','E','I','O','U'];
+
+    $values = [
+        'B'=>2,'C'=>3,'D'=>4,'F'=>6,'G'=>7,'H'=>8,
+        'J'=>1,'K'=>2,'L'=>3,'M'=>4,'N'=>5,'P'=>7,
+        'Q'=>8,'R'=>9,'S'=>1,'T'=>2,'V'=>4,'W'=>5,
+        'X'=>6,'Y'=>7,'Z'=>8
+    ];
+
+    $sum = 0;
+
+    foreach(str_split($name) as $char){
+        if(!in_array($char,$vowels) && isset($values[$char])){
+            $sum += $values[$char];
+        }
+    }
+
+    return reduceNumber($sum);
+}
+
+function maturityNumber($lifePath,$destiny)
+{
+    return reduceNumber($lifePath + $destiny);
+}
+
+function personalYear($date)
+{
+    $year = date("Y");
+    $birthMonthDay = date("md",strtotime($date));
+
+    $sum = array_sum(str_split($birthMonthDay.$year));
+
+    return reduceNumber($sum);
+}
+
+function personalMonth($date)
+{
+    $month = date("m");
+    $py = personalYear($date);
+
+    return reduceNumber($month + $py);
+}
+
+function personalDay($date)
+{
+    $day = date("d");
+    $pm = personalMonth($date);
+
+    return reduceNumber($day + $pm);
+}
+
 
 /* -------------------------
-   PROCESS FORM
+PROCESS FORM
 --------------------------*/
 
 if ($submit) {
@@ -83,43 +155,30 @@ if ($submit) {
             new DateTimeImmutable('+1 day', $tz)
         );
 
-        if ($selectedCalculator === 'life-path-number') {
+        $fullName = $firstName . $middleName . $lastName;
 
-            $number = lifePathNumber($date);
+        $lifePath = lifePathNumber($date);
+        $birthday = birthdayNumber($date);
+        $destiny = nameNumber($fullName);
+        $soul = soulUrgeNumber($fullName);
+        $personality = personalityNumber($fullName);
+        $maturity = maturityNumber($lifePath,$destiny);
 
-            $result = [
-                'title' => 'Life Path Number',
-                'number' => $number
-            ];
+        $py = personalYear($date);
+        $pm = personalMonth($date);
+        $pd = personalDay($date);
 
-        } elseif ($selectedCalculator === 'birthday-number') {
-
-            $number = birthdayNumber($date);
-
-            $result = [
-                'title' => 'Birthday Number',
-                'number' => $number
-            ];
-
-        } elseif ($selectedCalculator === 'expression-number') {
-
-            $name = $firstName . $middleName . $lastName;
-
-            $number = nameNumber($name);
-
-            $result = [
-                'title' => 'Expression Number',
-                'number' => $number
-            ];
-
-        } else {
-
-            $result = [
-                'title' => 'Calculator',
-                'number' => 'Not implemented yet'
-            ];
-
-        }
+        $result = [
+            "lifePath"=>$lifePath,
+            "birthday"=>$birthday,
+            "destiny"=>$destiny,
+            "soulUrge"=>$soul,
+            "personality"=>$personality,
+            "maturity"=>$maturity,
+            "personalYear"=>$py,
+            "personalMonth"=>$pm,
+            "personalDay"=>$pd
+        ];
 
     } catch (Exception $e) {
 
@@ -128,9 +187,6 @@ if ($submit) {
     }
 }
 
-
-/* API removed */
 $apiCreditUsed = 0;
-
 
 include DEMO_BASE_DIR . '/templates/numerology.tpl.php';
